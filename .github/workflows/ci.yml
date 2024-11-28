@@ -1,0 +1,56 @@
+name: Continuous Integration
+
+on: [ push, pull_request, workflow_dispatch]
+
+
+jobs:
+    tests:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+          with:
+            persist-credentials: false
+
+        - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+          with:
+            go-version: "1.22"
+
+        - name: Build and push
+          uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355
+          with:
+            context: "{{defaultContext}}:docker"
+            push: false
+            file: "playwright.Dockerfile"
+
+        - name: Playwright version
+          id: playwright
+          run: |
+            export PLAYWRIGHT_GO_VERSION=$(go list -m all | grep github.com/playwright-community/playwright-go | awk '{print $2}')
+            echo "playwright_go_version=$PLAYWRIGHT_GO_VERSION" >> "$GITHUB_OUTPUT"
+            echo "version="$(go run github.com/playwright-community/playwright-go/cmd/playwright@$PLAYWRIGHT_GO_VERSION --version |cut -d " " -f 2) >> "$GITHUB_OUTPUT"
+    
+        - name: Cache playwright binaries
+          uses: actions/cache@v3
+          id: playwright-cache
+          with:
+            path: |
+              ~/.cache/ms-playwright
+              ~/.cache/apt/
+            key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}-1.1
+    
+        - name: Install playwright
+          if: steps.playwright-cache.outputs.cache-hit != 'true'
+          env:
+            PLAYWRIGHT_GO_VERSION: ${{ steps.playwright.outputs.playwright_go_version }}
+          run: go run github.com/playwright-community/playwright-go/cmd/playwright@$PLAYWRIGHT_GO_VERSION install --with-deps
+    
+        - name: Install playwright dependencies
+          if: steps.playwright-cache.outputs.cache-hit == 'true'
+          env:
+            PLAYWRIGHT_GO_VERSION: ${{ steps.playwright.outputs.playwright_go_version }}
+          run: |
+            sudo tar xvf ~/.cache/apt/apt.tar -C /
+            go run github.com/playwright-community/playwright-go/cmd/playwright@$PLAYWRIGHT_GO_VERSION install-deps
+        
+        - name: Run tests
+          run: go test -v ./...
