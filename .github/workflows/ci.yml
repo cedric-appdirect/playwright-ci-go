@@ -56,6 +56,13 @@ jobs:
           run: |
             sudo tar xvf ~/.cache/apt/apt.tar -C /
             go run github.com/playwright-community/playwright-go/cmd/playwright@$PLAYWRIGHT_GO_VERSION install-deps
-        
+
+        - name: Cache apt packages
+          run: |
+            sudo tar cvf apt.tar /var/cache/apt/archives
+            sudo chown $USER apt.tar
+            mkdir -p ~/.cache/apt
+            mv apt.tar ~/.cache/apt
+
         - name: Run tests
           run: go test -v ./...
