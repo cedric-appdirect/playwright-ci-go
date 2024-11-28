@@ -21,6 +21,8 @@ jobs:
             context: "{{defaultContext}}:docker"
             push: false
             file: "playwright.Dockerfile"
+            cache-from: type=gha
+            cache-to: type=gha,mode=max
 
         - name: Playwright version
           id: playwright
