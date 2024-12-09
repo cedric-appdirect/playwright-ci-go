@@ -86,9 +86,18 @@ func TestMain(m *testing.M) {
 		log.Fatalf("could not install Playwright: %v", err)
 	}
 
+	driver, err := playwright.NewDriver(&playwright.RunOptions{SkipInstallBrowsers: true})
+	if err != nil {
+		log.Fatalf("Could not create playwright driver: %s", err)
+	}
+
+	if err := driver.Install(); err != nil {
+		log.Fatalf("Could not install playwright: %s", err)
+	}
+
 	pw, err := playwright.Run()
 	if err != nil {
-		log.Fatalf("could not run Playwright: %v", err)
+		log.Fatalf("Could not run playwright: %s", err)
 	}
 
 	container, err := New(WithTimeout(5 * time.Minute))
