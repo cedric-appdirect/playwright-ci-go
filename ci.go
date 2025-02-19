@@ -24,7 +24,7 @@ type config struct {
 	timeout time.Duration
 }
 
-func New(opts ...Option) (*container, error) {
+func New(version string, opts ...Option) (*container, error) {
 	c := &config{
 		timeout: 60 * time.Second,
 		ctx:     context.Background(),
@@ -46,6 +46,9 @@ func New(opts ...Option) (*container, error) {
 				Context:    filepath.Join(".", "docker"),
 				Dockerfile: "playwright.Dockerfile",
 				KeepImage:  true,
+				BuildArgs: map[string]*string{
+					"PLAYWRIGHT_VERSION": &version,
+				},
 			},
 			HostAccessPorts: []int{int(proxyPort)},
 			WorkingDir:      "/src",

@@ -100,7 +100,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not run playwright: %s", err)
 	}
 
-	container, err := New(WithTimeout(5 * time.Minute))
+	container, err := New(driver.Version, WithTimeout(5*time.Minute))
 	if err != nil {
 		log.Fatalf("could not create container: %v", err)
 	}
