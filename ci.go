@@ -40,6 +40,7 @@ func New(version string, opts ...Option) (*container, error) {
 
 	proxy, proxyPort, close := transparentProxy()
 
+	log.Println("Starting and building browser container ", version)
 	genericContainerReq := testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			FromDockerfile: testcontainers.FromDockerfile{
