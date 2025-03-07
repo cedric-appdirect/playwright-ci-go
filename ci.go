@@ -40,16 +40,19 @@ func New(version string, opts ...Option) (*container, error) {
 
 	proxy, proxyPort, close := transparentProxy()
 
-	log.Println("Starting and building browser container ", version)
+	log.Println("Starting and building browser container", fmt.Sprintf("playwright-ci:v%s", version))
 	genericContainerReq := testcontainers.GenericContainerRequest{
 		ContainerRequest: testcontainers.ContainerRequest{
 			FromDockerfile: testcontainers.FromDockerfile{
 				Context:    filepath.Join(".", "docker"),
 				Dockerfile: "playwright.Dockerfile",
+				Tag:        version,
+				Repo:       "playwright-ci",
 				KeepImage:  true,
 				BuildArgs: map[string]*string{
 					"PLAYWRIGHT_VERSION": &version,
 				},
+				PrintBuildLog: true,
 			},
 			HostAccessPorts: []int{int(proxyPort)},
 			WorkingDir:      "/src",
